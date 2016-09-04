@@ -1,8 +1,12 @@
 import spur
 from shutil import copyfileobj
+import configparser
+
+conf = configparser.RawConfigParser()
+conf.read("vpn.ini")
 
 username = input("Input username to generate the keys: ")
-mail_p = username + "@mail.ru"
+mail_p = username + "@" + conf.get("main", "MAIL_SUFF")
 mail_i = input("E-mail (по умолчанию " + mail_p + "): ")
 if mail_i != "":
     mail = mail_i
@@ -11,9 +15,19 @@ else:
 
 print(mail)
 
+# Создаем из шаблона ovpn-файл
+with open('client.ovpn') as file_in:
+    text = file_in.read()
+text = text.replace("username", username)
+filename = username + ".ovpn"
+with open(filename, "w") as file_out:
+    file_out.write(text)
+
+exit()
+
 # Подключаемся по ssh
 
-shell = spur.SshShell(hostname="*", username="*", password="*")
+shell = spur.SshShell(hostname=conf.get("main", "SERVER"), username=conf.get("main", "USER"), password=conf.get("main", "PASSWORD"))
 with shell:
     result = shell.run(["echo", "-n", "hello"])
 print(result.output) # prints hello
