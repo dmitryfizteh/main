@@ -2,6 +2,11 @@ import configparser
 import subprocess, os
 import paramiko
 import sys
+import logging
+import re
+
+# Добавляем логгирование событий
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 conf = configparser.RawConfigParser()
 conf.read("vpn.ini")
@@ -12,19 +17,26 @@ conf.read("vpn.ini")
 if len(sys.argv) > 1:
     username = sys.argv[1]
 else:
-    username = input("Input username to generate the keys: ")
-print("Имя пользователя: "+ username)
+    username = input("Имя пользователя, для которого создаются ключи доступа: ")
+logging.info("Имя пользователя: "+ username)
 
 mail_p = username + "@" + conf.get("mail", "MAIL_SUFF")
-mail_i = input("E-mail (по умолчанию " + mail_p + "): ")
+mail_i = input("E-mail пользователя, на который будут отправлены ключи доступа(по умолчанию " + mail_p + "): ")
 if mail_i != "":
     mail = mail_i
 else:
     mail = mail_p
-print("Почта пользователя: " + mail)
+check = re.search(r'^[a-zA-Z0-9]{1,100}[@][a-z]{2,6}\.[a-z]{2,4}', mail)
+if check:
+    logging.info("E-mail пользователя: " + mail)
+else:
+    logging.error("Ошибочно введен e-mail пользователя: " + mail)
+    exit()
+
 exit()
 
 # Подключаемся по ssh, создаем и скачиваем ключи
+logging.debug(u'Подключаемся по ssh, создаем и скачиваем ключи')
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
