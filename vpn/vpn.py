@@ -1,21 +1,28 @@
 import configparser
 import subprocess, os
 import paramiko
+import sys
 
 conf = configparser.RawConfigParser()
 conf.read("vpn.ini")
 # TODO: убрать пароль из файла и сделать его запрос
 
-# TODO: считывать username из параметров командной строки и запрашивать только если не указан
-username = input("Input username to generate the keys: ")
-# TODO: убрать в рабочем варианте
-username = "avedrov"
+# TODO: убрать avedrov из параметров командной строки
+# Считываем username из параметров командной строки и запрашиваем только если не указан
+if len(sys.argv) > 1:
+    username = sys.argv[1]
+else:
+    username = input("Input username to generate the keys: ")
+print("Имя пользователя: "+ username)
+
 mail_p = username + "@" + conf.get("mail", "MAIL_SUFF")
 mail_i = input("E-mail (по умолчанию " + mail_p + "): ")
 if mail_i != "":
     mail = mail_i
 else:
     mail = mail_p
+print("Почта пользователя: " + mail)
+exit()
 
 # Подключаемся по ssh, создаем и скачиваем ключи
 ssh = paramiko.SSHClient()
@@ -24,7 +31,7 @@ ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 ssh.connect(hostname=conf.get("main", "SERVER"), username=conf.get("main", "USER"), password=conf.get("main", "PASSWORD")) #, key_filename='<path/to/openssh-private-key-file>')
 
 # TODO: реализовать команду создания ключей
-stdin, stdout, stderr = ssh.exec_command('echo hello')
+stdin, stdout, stderr = ssh.exec_command('ls /etc/openvpn/easy-rsa')
 data = stdout.read() + stderr.read()
 print(data)
 
