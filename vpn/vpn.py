@@ -1,6 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import configparser
-import subprocess, os
 import paramiko
+import subprocess
+import os
 import sys
 import logging
 import re
@@ -32,8 +36,6 @@ if check:
 else:
     logging.error("Ошибочно введен e-mail пользователя: " + mail)
     exit()
-
-exit()
 
 # Подключаемся по ssh, создаем и скачиваем ключи
 logging.debug(u'Подключаемся по ssh, создаем и скачиваем ключи')
@@ -70,12 +72,14 @@ with open(filename, "w") as file_out:
 
 # Создаем архив с ключами
 # TODO: сделать одноранговые файлы в архиве
-rc = subprocess.call(['7z', 'a', '-p12345', '-y', 'client.7z'] + ['keys/ca.crt','keys/ta.key', filename, destination_key, destination_crt])
+rc = subprocess.call(['7z', 'a', '-p12345', '-y', '-mhe=on', 'client.7z'] + ['keys/ca.crt','keys/ta.key', filename, destination_key, destination_crt])
 
 os.remove(filename)
 os.remove(destination_key)
 os.remove(destination_crt)
 #os.remove('client.7z')
+
+# TODO: Добавить пользователя в группу AD
 
 exit()
 
