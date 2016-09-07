@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import pandas as pd
 import requests
 
@@ -43,21 +46,11 @@ print(result.head())
 exit()
 result = pd.pivot_table(result, values = ['Всего', 'ExtTech', 'Развитие', 'Эксплуатация', 'ДРТ'], index = ['Договор'],  aggfunc = 'sum', fill_value = 0)
 
-#for i in range(8):
-#    sum = pd.concat(sum, calc_month(i+1, writer))
 writer.save()
 
 print(result)
 
 exit()
-
-# Построить матрицу, где по строкам виды деятельности, а по столбцам ЦФУ
-
-# Записать dataframe в БД
-
-## Обработка трудозатрат за год
-# Запросами из БД построить матрицу, где по строкам виды деятельности, а по столбцам ЦФУ
-# Записать на лист в Excel
 
 ## Количество рабочих дней за период, количество отпусков и больничных
 
