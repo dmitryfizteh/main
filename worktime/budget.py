@@ -43,7 +43,7 @@ ptk = pd.merge(ptk, ptk_limits, left_on='Статья', right_on='Статья')
 # Расчитываем остатки по статьям
 ptk['Остаток'] = ptk[['Без НДС', 'Лимит']].apply(lambda x: x[1] - x[0], axis=1)
 ptk['Равномерность расхода'] = ptk[['Без НДС', 'Лимит']].apply(lambda x: x[1]/12*PERIOD - x[0], axis=1)
-
+'''
 ## ДЕТАЛЬНО ПО ДОГОВОРАМ
 # Суммируем по договорам (детально)
 ptd = df.pivot_table(['Без НДС'], ['Статья', 'Договор'], aggfunc='sum', fill_value=0)
@@ -54,18 +54,19 @@ ptd_limits = pd.read_excel("data/limits.xlsx", sheetname='Детально', hea
 ptd_limits.columns = ['Статья', 'Договор', 'Лимит']
 # Удаляем лишние столбцы
 ptd_limits = ptd_limits[['Договор', 'Лимит']]
+
 # Cвязываем расходы и лимиты в один dataframe
 # TODO: BUG: если лимита на договор нет, то в общий расчет информация не попадает
-ptd = pd.merge(ptd, ptd_limits, left_on='Договор', right_on='Договор')
+
 # Расчитываем остатки по статьям
 ptd['Остаток'] = ptd[['Без НДС', 'Лимит']].apply(lambda x: x[1] - x[0], axis=1)
 ptd['Равномерность расхода'] = ptd[['Без НДС', 'Лимит']].apply(lambda x: x[1]/12*PERIOD - x[0], axis=1)
-
+'''
 # TODO: добавить общие суммы
 
 writer = pd.ExcelWriter('budget.xlsx')
 df.to_excel(writer, 'Выгрузка операций')
 ptk.to_excel(writer, 'По-крупному')
-ptd.to_excel(writer, 'Детально')
+#ptd.to_excel(writer, 'Детально')
 # TODO: добавить правильное форматирование Excel
 writer.save()
