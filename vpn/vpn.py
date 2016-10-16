@@ -8,6 +8,7 @@ import os
 import sys
 import logging
 import re
+import ldap3
 
 # Добавляем логгирование событий
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')

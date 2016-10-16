@@ -22,22 +22,27 @@ df = df.dropna(subset=['Название'], how='all')
 # Заменить строки с пустыми договорами на "резерв"
 df['Договор'] = df['Договор'].fillna(value='пустой')
 
-# Неточная заглушка для валют (больше не нужна)
-# df['Сумма'] = df[['Валюта', 'Сумма']].apply(lambda x: x[1] if (x[0] == 'Рубли') else x[1]*63, axis=1)
-
 # Приводим все суммы в виду "Без НДС"
 df['Без НДС'] = df[['Налог', 'Сумма']].apply(lambda x: x[1]/1.18 if (x[0] == 'С НДС') else x[1], axis=1)
 # Оставляем только нужные столбцы
 df = df[['Название','Номер бегунка', 'Автор', 'Статья', 'Договор', 'Сумма', 'Налог','Без НДС', 'Валюта', 'Дата создания', 'Описание']]
+df_shot_k = df[['Статья', 'Без НДС']]
+df_shot_d = df[['Статья', 'Договор', 'Без НДС']]
 
 ## ПО СТАТЬЯМ
-# Суммируем по статьям (по-крупному)
-ptk = df.pivot_table(['Без НДС'], ['Статья'], aggfunc='sum', fill_value=0)
-# Сбрасываем MultiIndex
-ptk = ptk.reset_index()
 # Загружаем лимиты
 ptk_limits = pd.read_excel("data/limits.xlsx", sheetname='По-крупному', header=0, skiprows=0, skip_footer=0)
 ptk_limits.columns = ['Статья','Лимит']
+# Готовим строки таблицы лимитов для объединения со строками трат
+ptk_shot = ptk_limits[['Статья']]
+ptk_shot['Без НДС'] = 0
+# Объединяем строки трат с нулевыми строками лимитов
+ptk_for_pivot = pd.concat([df_shot_k, ptk_shot])
+# Суммируем по статьям (по-крупному)
+ptk = ptk_for_pivot.pivot_table(['Без НДС'], ['Статья'], aggfunc='sum', fill_value=0)
+# Сбрасываем MultiIndex
+ptk = ptk.reset_index()
+
 # Cвязываем расходы и лимиты в один dataframe
 ptk = pd.merge(ptk, ptk_limits, left_on='Статья', right_on='Статья')
 # Расчитываем остатки по статьям
@@ -45,13 +50,20 @@ ptk['Остаток'] = ptk[['Без НДС', 'Лимит']].apply(lambda x: x[1
 ptk['Равномерность расхода'] = ptk[['Без НДС', 'Лимит']].apply(lambda x: x[1]/12*PERIOD - x[0], axis=1)
 
 ## ДЕТАЛЬНО ПО ДОГОВОРАМ
-# Суммируем по договорам (детально)
-ptd = df.pivot_table(['Без НДС'], ['Статья', 'Договор'], aggfunc='sum', fill_value=0)
-# Сбрасываем MultiIndex
-ptd = ptd.reset_index()
 # Загружаем лимиты
 ptd_limits = pd.read_excel("data/limits.xlsx", sheetname='Детально', header=0, skiprows=0, skip_footer=0)
 ptd_limits.columns = ['Статья', 'Договор', 'Лимит']
+# Готовим строки таблицы лимитов для объединения со строками трат
+ptd_shot = ptd_limits[['Статья', 'Договор']]
+ptd_shot['Без НДС'] = 0
+# Объединяем строки трат с нулевыми строками лимитов
+ptd_for_pivot = pd.concat([df_shot_d, ptd_shot])
+
+# Суммируем по договорам (детально)
+ptd = ptd_for_pivot.pivot_table(['Без НДС'], ['Статья', 'Договор'], aggfunc='sum', fill_value=0)
+# Сбрасываем MultiIndex
+ptd = ptd.reset_index()
+
 # Удаляем лишние столбцы
 ptd_limits = ptd_limits[['Договор', 'Лимит']]
 
@@ -59,7 +71,6 @@ ptd_limits = ptd_limits[['Договор', 'Лимит']]
 ptd = pd.merge(ptd, ptd_limits, left_on='Договор', right_on='Договор')
 # TODO: BUG: если лимита на договор нет, то в общий расчет информация не попадает
 # TODO: BUG: если совпадают имена договоров в разных статьях, то указывается некорректный лимит. Например, для "резерв"
-# TODO: сделать, чтобы указывались статьи с лимитами, но без трат
 
 # Расчитываем остатки по статьям
 ptd['Остаток'] = ptd[['Без НДС', 'Лимит']].apply(lambda x: x[1] - x[0], axis=1)
@@ -73,3 +84,5 @@ ptk.to_excel(writer, 'По-крупному')
 ptd.to_excel(writer, 'Детально')
 # TODO: добавить правильное форматирование Excel
 writer.save()
+
+# TODO: реализовать прозрачный переброс средств между статьями
