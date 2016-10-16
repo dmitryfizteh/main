@@ -44,7 +44,8 @@ ptk = ptk_for_pivot.pivot_table(['Без НДС'], ['Статья'], aggfunc='su
 ptk = ptk.reset_index()
 
 # Cвязываем расходы и лимиты в один dataframe
-ptk = pd.merge(ptk, ptk_limits, left_on='Статья', right_on='Статья')
+ptk = pd.merge(ptk, ptk_limits, on='Статья', how='outer')
+ptk['Лимит'] = ptk['Лимит'].fillna(value=0)
 # Расчитываем остатки по статьям
 ptk['Остаток'] = ptk[['Без НДС', 'Лимит']].apply(lambda x: x[1] - x[0], axis=1)
 ptk['Равномерность расхода'] = ptk[['Без НДС', 'Лимит']].apply(lambda x: x[1]/12*PERIOD - x[0], axis=1)
@@ -68,8 +69,9 @@ ptd = ptd.reset_index()
 ptd_limits = ptd_limits[['Договор', 'Лимит']]
 
 # Cвязываем расходы и лимиты в один dataframe
-ptd = pd.merge(ptd, ptd_limits, left_on='Договор', right_on='Договор')
-# TODO: BUG: если лимита на договор нет, то в общий расчет информация не попадает
+ptd = pd.merge(ptd, ptd_limits, on='Договор', how='outer')
+ptd['Лимит'] = ptd['Лимит'].fillna(value=0)
+
 # TODO: BUG: если совпадают имена договоров в разных статьях, то указывается некорректный лимит. Например, для "резерв"
 
 # Расчитываем остатки по статьям
