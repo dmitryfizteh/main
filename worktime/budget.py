@@ -9,6 +9,7 @@
 PERIOD = 11
 
 import pandas as pd
+import xlsxwriter
 
 # Выставить PERIOD
 # Выгрузить файл с бюджетом "Сис-админ" со статусом "Кроме удаленных" и датами периода
@@ -27,7 +28,7 @@ df['Договор'] = df['Договор'].fillna(value='пустой')
 # Приводим все суммы в виду "Без НДС"
 df['Без НДС'] = df[['Налог', 'Сумма']].apply(lambda x: x[1]/1.18 if (x[0] == 'С НДС') else x[1], axis=1)
 # Оставляем только нужные столбцы
-df = df[['Название','Номер бегунка', 'Автор', 'Статья', 'Договор', 'Сумма', 'Налог','Без НДС', 'Валюта', 'Дата создания', 'Описание']]
+df = df[['Название', 'Автор', 'Статья', 'Договор', 'Сумма', 'Налог','Без НДС', 'Валюта', 'Дата создания', 'Описание']]
 df_shot_k = df[['Статья', 'Без НДС']]
 df_shot_d = df[['Статья', 'Договор', 'Без НДС']]
 # Итого для таблицы трат
@@ -92,12 +93,27 @@ summ_d['Статья'] = 'ИТОГО:'
 summ_d['Договор'] = ''
 ptd = ptd.append(summ_d)
 
-writer = pd.ExcelWriter('budget.xlsx')
+writer = pd.ExcelWriter('budget.xlsx', engine='xlsxwriter')
 df.to_excel(writer, 'Выгрузка операций')
 ptk.to_excel(writer, 'По-крупному')
 ptd.to_excel(writer, 'Детально')
+
 # TODO: добавить правильное форматирование Excel
+# Get the xlsxwriter workbook and worksheet objects.
+workbook  = writer.book
+worksheet = writer.sheets['По-крупному']
+# Apply a conditional format to the cell range.
+#  Add a format. Light red fill with dark red text.
+format1 = workbook.add_format({'bg_color': '#FFC7CE','font_color': '#9C0006'})
+#Write a conditional format over a range.
+worksheet.conditional_format('E2:F10', {'type': 'cell',
+                                         'criteria': '<',
+                                         'value': 0,
+                                         'format': format1})
 writer.save()
+
+
+
 
 # TODO: реализовать прозрачный переброс средств между статьями
 # TODO: реализовать тесты на попадание всех расходов и лимитов в общую сумму
