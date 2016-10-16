@@ -112,7 +112,7 @@ worksheet.conditional_format('E2:F10', {'type': 'cell',
                                          'format': format1})
 writer.save()
 
-
+# http://xlsxwriter.readthedocs.io/example_conditional_format.html
 
 
 # TODO: реализовать прозрачный переброс средств между статьями
