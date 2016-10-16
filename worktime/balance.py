@@ -1,16 +1,14 @@
-import pandas as pd
-import requests
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# Загрузить файл, загрузить его в dataframe
-'''
-destination = 'all.xls'
-url = 'http://'
-user = input("Login:")
-passw = input("Password:")
-r = requests.get(url, stream=True, auth=(user, passw))
-with open(destination, "wb") as code:
-    code.write(r.content)
-'''
+# --------------------------------------------------------------#
+# Скрипт расчета трат бюджета за период по выгрузке из бегунков #
+# --------------------------------------------------------------#
+
+# Расчетный период в месяцах (с учетом декабря)
+PERIOD = 9
+
+import pandas as pd
 
 ## Функция обработки трудозатрат за месяц
 def calc_month(i, writer):
@@ -31,33 +29,35 @@ def calc_month(i, writer):
     pt = pt.sort_values(['Всего', 'Развитие', 'Эксплуатация', 'ExtTech'], ascending = [0,0,0,0])
 
     #print(pt)
-    pt.to_excel(writer,'Sheet'+str(i))
+    pt.to_excel(writer,'№'+str(i))
     return pt
 
 # Записать на лист в Excel
 writer = pd.ExcelWriter('our.xlsx')
 
-frames = [calc_month(i, writer) for i in range(9)]
+## Обработка трудозатрат за год
+# Построить матрицу, где по строкам виды деятельности, а по столбцам ЦФУ
+frames = [calc_month(i, writer) for i in range(PERIOD)]
 result = pd.concat(frames)
-print(result.head())
-exit()
-result = pd.pivot_table(result, values = ['Всего', 'ExtTech', 'Развитие', 'Эксплуатация', 'ДРТ'], index = ['Договор'],  aggfunc = 'sum', fill_value = 0)
+# Сбрасываем MultiIndex
+result = result.reset_index()
 
-#for i in range(8):
-#    sum = pd.concat(sum, calc_month(i+1, writer))
-writer.save()
+result = pd.pivot_table(result, values = ['Всего', 'ExtTech', 'Развитие', 'Эксплуатация', 'ДРТ'], index = ['Договор'],  aggfunc = 'sum', fill_value = 0)
+result = result.sort_values(['Всего', 'Развитие', 'Эксплуатация', 'ExtTech'], ascending = [0,0,0,0])
+result = result.reset_index()
+result = result[['Договор', 'Всего', 'Развитие', 'Эксплуатация', 'ExtTech', 'ДРТ']]
+
+# ИТОГО
+summ = pd.DataFrame(result.sum()).T
+summ['Договор'] = 'ИТОГО, часов:'
+result = result.append(summ)
 
 print(result)
+result.to_excel(writer,'За весь период')
+
+writer.save()
 
 exit()
-
-# Построить матрицу, где по строкам виды деятельности, а по столбцам ЦФУ
-
-# Записать dataframe в БД
-
-## Обработка трудозатрат за год
-# Запросами из БД построить матрицу, где по строкам виды деятельности, а по столбцам ЦФУ
-# Записать на лист в Excel
 
 ## Количество рабочих дней за период, количество отпусков и больничных
 
