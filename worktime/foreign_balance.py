@@ -22,7 +22,10 @@ def calc_file(file_name):
 def calc_month(month, year, writer):
     dir_string = "data/"+str(year)+"/"
     files = os.listdir(dir_string)
-    reg_string = '-0'+str(month)+'.xls'
+    if(month < 10):
+        reg_string = '-0'+str(month)+'.xls'
+    else:
+        reg_string = '-' + str(month) + '.xls'
     current_files = filter(lambda x: x.endswith(reg_string), files)
 
     frames = [calc_file(dir_string+f) for f in current_files]

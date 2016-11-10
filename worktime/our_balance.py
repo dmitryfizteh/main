@@ -6,14 +6,16 @@
 # --------------------------------------------------------------#
 
 # Расчетный период в месяцах (с учетом декабря)
-PERIOD = 10
+PERIOD = 11
 
 import pandas as pd
 
 ## Функция обработки трудозатрат за месяц
 def calc_month(i, writer):
-
-    df = pd.read_excel("data/wt-0"+str(i)+".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
+    if (i<10):
+        df = pd.read_excel("data/wt-0"+str(i)+".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
+    else:
+        df = pd.read_excel("data/wt-" + str(i) + ".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
 
     pt = df.pivot_table(['Трудозатраты, ч'], ['Продукт'], aggfunc = 'sum', fill_value = 0)
     pt = pd.pivot_table(df, values = 'Трудозатраты, ч', index = ['Договор'], columns = ['Продукт'],  aggfunc = 'sum', fill_value = 0)
