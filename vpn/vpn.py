@@ -8,7 +8,7 @@ import os
 import sys
 import logging
 import re
-import ldap3
+#import ldap3
 
 # Добавляем логгирование событий
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -75,9 +75,9 @@ with open(filename, "w") as file_out:
 # TODO: сделать одноранговые файлы в архиве
 rc = subprocess.call(['7z', 'a', '-p12345', '-y', '-mhe=on', 'client.7z'] + ['keys/ca.crt','keys/ta.key', filename, destination_key, destination_crt])
 
-os.remove(filename)
-os.remove(destination_key)
-os.remove(destination_crt)
+#os.remove(filename)
+#os.remove(destination_key)
+#os.remove(destination_crt)
 #os.remove('client.7z')
 
 # TODO: Добавить пользователя в группу AD

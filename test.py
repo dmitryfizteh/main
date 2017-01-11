@@ -1,16 +1,12 @@
-print("Hello, Hub from Mac")
+print("X:/university/reorganization/Материалы для участников программы развития компетенций/Рабочее пространство участников программы")
+exit
+import os
+os.chdir("X:/university/reorganization/Материалы для участников программы развития компетенций/Рабочее пространство участников программы")
 
-# Аргументы запуска скрипта
-import sys
-#print(sys.argv)
-sum = int(sys.argv[1]) + int(sys.argv[2])
-print(sum)
-
-import pandas
-
-# проверить наличие или закачать файл с тратами бюджета
-# привести все расчеты к рублям без НДС
-# добавить (из БД?)доходные статьи, остатки и равномерность трат
-# вывести суммы по всем статьям и договорам в них
-# то же самое помесячно
-# выгрузить в Excel
+f = open('users.txt')
+line = f.readline()
+for line in f.readlines():
+    line = line[0:-1]
+    print(line)
+    os.mkdir(line)
+f.close()

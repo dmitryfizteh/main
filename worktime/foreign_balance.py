@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------#
 
 # Расчетный период в месяцах (с учетом декабря)
-PERIOD = 10
+PERIOD = 1
 
 import pandas as pd
 import os
@@ -62,5 +62,5 @@ def calc_year(year, writer):
     return year_data
 
 writer = pd.ExcelWriter('foreign_balance.xlsx')
-calc_year(2016, writer)
+calc_year(2017, writer)
 writer.save()
