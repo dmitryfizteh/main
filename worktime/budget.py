@@ -24,9 +24,9 @@ df = pd.read_excel("data/ExportRunners.xls", sheetname=0, header=0, skiprows=0, 
 
 #Преобразовать ссылки  в номера бегунков
 
-# print(df.info())
-# print(df.head())
-# exit()
+#print(df.info())
+#print(df.head())
+#exit()
 
 # сделать исключения номеров бегунков (с прошлого периода) - НЕ РАБОТАЮТ, пока нет перевода ссылок в номера бегунков
 df = df[~df.isin({'Номер бегунка':exception_list_2017})]

@@ -18,19 +18,15 @@ def calc_month(i, writer):
         df = pd.read_excel("data/2017/wt/wt-" + str(i) + ".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
 
     pt = df.pivot_table(['Трудозатраты, ч'], ['Продукт'], aggfunc = 'sum', fill_value = 0)
-    pt = pd.pivot_table(df, values = 'Трудозатраты, ч', index = ['Договор'], columns = ['Продукт'],  aggfunc = 'sum', fill_value = 0)
-    try:
-        pt.columns = ['Эксплуатация', 'Развитие', 'ExtTech', 'ДРТ']
-    except:
-        pt.columns = ['Эксплуатация', 'Развитие', 'ExtTech']
-    pt['Всего'] = pt.sum(1)
-    try:
-        pt = pt[['Всего', 'Развитие', 'Эксплуатация', 'ExtTech', 'ДРТ']]
-    except:
-        pt = pt[['Всего', 'Развитие', 'Эксплуатация', 'ExtTech']]
-    pt = pt.sort_values(['Всего', 'Развитие', 'Эксплуатация', 'ExtTech'], ascending = [0,0,0,0])
 
-    #print(pt)
+    pt = pd.pivot_table(df, values = 'Трудозатраты, ч', index = ['Договор'], columns = ['Продукт'],  aggfunc = 'sum', fill_value = 0)
+
+    pt = pt.rename(columns={'Adm': 'Эксплуатация', 'Adm-Evol': 'Развитие', 'Adm-ExtTech': 'ExtTech', 'VerControl': 'ДРТ'})
+
+    pt['Всего'] = pt.sum(1)
+
+    pt = pt.sort_values(['Всего', 'Развитие', 'Эксплуатация'], ascending = [0,0,0])
+
     pt.to_excel(writer,'№'+str(i))
     return pt
 
