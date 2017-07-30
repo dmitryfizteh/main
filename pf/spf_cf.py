@@ -47,9 +47,6 @@ def create_cfversion(id, master_id, layeredattrs, versionid=1):
     id += 1
     return id
 
-rb = xlrd.open_workbook('data/indicators.xlsx')
-sheet = rb.sheet_by_name("CashFlow")
-
 def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatalog_id, versionid=1):
 
     if (item_id):
@@ -70,6 +67,8 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatal
     id += 1
     return id
 
+rb = xlrd.open_workbook('data/indicators.xlsx')
+sheet = rb.sheet_by_name("CashFlow")
 
 # TODO: сделать обработку всего файла
 #for rownum in range(2, sheet.nrows):
