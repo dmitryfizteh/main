@@ -22,6 +22,7 @@ id_cat_item = 5601
 cashflowcatalog_id = 1
 
 # TODO: Создать периоды проекта
+periods = {1:27,2:25,3:23,4:9,5:32,6:30,7:21,8:7,9:18,10:15,11:12,12:4,13:28,14:26,15:24,16:10,17:32,18:31,19:22,20:8}
 
 # Создаем CF и фактические значение
 def create_cf_item(id_cf_item, name, code, layeredattrs, direction, type, currency_id):
@@ -95,7 +96,8 @@ for rownum in range(2, 49):
         fact = {}
         plan = {}
         for i in range(1, 19):
-            key="{}".format(i)
+            #key="{}".format(i)
+            key = periods[i]
             fact[key] = row[2 * (i - 1) + 5]
             plan[key] = row[2 * (i - 1) + 4]
             i += 1

@@ -17,6 +17,9 @@ pi_catalog_id = 1
 id_cat_item = 5000
 id_pi_version = 1000
 
+# TODO: Создать периоды проекта
+periods = {1:27,2:25,3:23,4:9,5:32,6:30,7:21,8:7,9:18,10:15,11:12,12:4,13:28,14:26,15:24,16:10,17:32,18:31,19:22,20:8}
+
 # Создаем PI и фактические значение
 def create_pi_item(id_pi_item, name, code, layeredattrs, projectid):
     sql = "INSERT INTO spf.projectindicator(id, name, code, layeredattrs, projectid) VALUES ({0}, '{1}', '{2}', '{3}', '{4}');".format(
@@ -90,7 +93,8 @@ for rownum in range(2, 5):
         fact = {}
         plan = {}
         for i in range(1, 20):
-            key="{}".format(i)
+            #key="{}".format(i)
+            key = periods[i]
             fact[key] = row[2 * (i - 1) + 4]
             plan[key] = row[2 * (i - 1) + 3]
             i += 1
