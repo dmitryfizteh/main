@@ -14,9 +14,9 @@ project_id = 1
 currency_id = 1
 
 # TODO: Запросить id_cf_item (max_id)
-id_cf_item = 301
-id_cf_version = 601
-id_cat_item = 3601
+id_cf_item = 5301
+id_cf_version = 5601
+id_cat_item = 5601
 
 # TODO: Создать cashflowcatalog (max_id)
 cashflowcatalog_id = 1
@@ -73,7 +73,7 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatal
 
 # TODO: сделать обработку всего файла
 #for rownum in range(2, sheet.nrows):
-for rownum in range(2, 13):
+for rownum in range(2, 49):
     row = sheet.row_values(rownum)
 
     if (row[0] != "cf" and row[0] != "av" and row[0] != "ap" and row[0] != "cv" and row[0] != "cp" and row[0] != ""):
@@ -105,10 +105,6 @@ for rownum in range(2, 13):
         code = "cf_"+str(id_cf_item)
         id_cf_item = create_cf_item(id_cf_item, row[1], code, layeredattrs, row[2], row[3], currency_id)
         id_cf_version = create_cfversion(id_cf_version, id_cf_item-1, layeredattrs_plan)
-        id_cat_item = create_cat_item(id_cat_item, last_tag, id_cf_item-1, "", "")
+        id_cat_item = create_cat_item(id_cat_item, last_tag, id_cf_version-1, "", "")
 
 print (undo)
-
-
-#print(layeredattrs)
-# {"FACT": {"1": 883.24, "2": 283.06, "3": 831.27, "4": 614.49, "5": 466.86, "6": 813.58, "7": 847.83, "8": 367.32, "9": 975.97, "10": 529.49, "11": 942.07, "12": 874.22, "13": 963.54, "14": 844.62, "15": 625.83, "16": 295.44, "17": 869.70, "18": 931.22, "19": 418.13, "20": 236.79, "21": 773.25, "22": 200.03, "23": 496.35, "24": 944.35, "25": 882.83, "26": 111.54, "27": 466.46, "28": 231.67, "29": 890.41, "30": 891.07, "31": 616.47, "32": 753.94, "33": 178.49}}
