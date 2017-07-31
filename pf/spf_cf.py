@@ -14,7 +14,7 @@ project_id = 1
 currency_id = 1
 
 # TODO: Запросить id_cf_item (max_id)
-id_cf_item = 5301
+id_cf_item = 5601
 id_cf_version = 5601
 id_cat_item = 5601
 
@@ -22,7 +22,7 @@ id_cat_item = 5601
 cashflowcatalog_id = 1
 
 # TODO: Создать периоды проекта
-periods = {1:27,2:25,3:23,4:9,5:32,6:30,7:21,8:7,9:18,10:15,11:12,12:4,13:28,14:26,15:24,16:10,17:32,18:31,19:22,20:8}
+periods = {1:27,2:23,3:9,4:32,5:30,6:21,7:7,8:18,9:15,10:12,11:4,12:28,13:26,14:24,15:10,16:33,17:31,18:22,19:8,20:19}
 
 # Создаем CF и фактические значение
 def create_cf_item(id_cf_item, name, code, layeredattrs, direction, type, currency_id):
@@ -71,9 +71,7 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatal
 rb = xlrd.open_workbook('data/indicators.xlsx')
 sheet = rb.sheet_by_name("CashFlow")
 
-# TODO: сделать обработку всего файла
-#for rownum in range(2, sheet.nrows):
-for rownum in range(2, 49):
+for rownum in range(1, sheet.nrows):
     row = sheet.row_values(rownum)
 
     if (row[0] != "cf" and row[0] != "av" and row[0] != "ap" and row[0] != "cv" and row[0] != "cp" and row[0] != ""):
@@ -95,10 +93,10 @@ for rownum in range(2, 49):
     if (row[0] == "cf"):
         fact = {}
         plan = {}
-        for i in range(1, 19):
-            #key="{}".format(i)
+        for i in range(1, 20):
             key = periods[i]
-            fact[key] = row[2 * (i - 1) + 5]
+            if(i<10):
+                fact[key] = row[2 * (i - 1) + 5]
             plan[key] = row[2 * (i - 1) + 4]
             i += 1
         layeredattrs = json.dumps({"FACT": fact})
