@@ -8,6 +8,7 @@ import postgresql
 import json
 
 undo = ""
+sql_update=""
 
 project_id = 1
 #sql="INSERT INTO spf.project(id, name) VALUES (31,'Темповый проект');"
@@ -68,6 +69,11 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatal
     id += 1
     return id
 
+def update_cf_item(id, layeredattrs, sql_update):
+    sql_update = sql_update + "UPDATE spf.cashflow SET layeredattrs='{1}' WHERE id={0};".format(id, layeredattrs)
+    return sql_update
+
+
 rb = xlrd.open_workbook('data/indicators.xlsx')
 sheet = rb.sheet_by_name("CashFlow")
 
@@ -92,18 +98,27 @@ for rownum in range(1, sheet.nrows):
 
     if (row[0] == "cf"):
         fact = {}
+        update_fact = {}
         plan = {}
+        # За сколько периодов вносить данные
         for i in range(1, 20):
             key = periods[i]
+            # До какого периода вносить фактические данные
             if(i<10):
                 fact[key] = row[2 * (i - 1) + 5]
+            # До какого периода вносить фактические данные (с помощью UPDATE)
+            if(i<11):
+                update_fact[key] = row[2 * (i - 1) + 5]
             plan[key] = row[2 * (i - 1) + 4]
             i += 1
         layeredattrs = json.dumps({"FACT": fact})
+        layeredattrs_update_fact = json.dumps({"FACT": update_fact})
         layeredattrs_plan = json.dumps({"PLAN": plan})
         code = "cf_"+str(id_cf_item)
         id_cf_item = create_cf_item(id_cf_item, row[1], code, layeredattrs, row[2], row[3], currency_id)
+        sql_update = update_cf_item(id_cf_item-1, layeredattrs_update_fact, sql_update)
         id_cf_version = create_cfversion(id_cf_version, id_cf_item-1, layeredattrs_plan)
         id_cat_item = create_cat_item(id_cat_item, last_tag, id_cf_version-1, "", "")
 
 print (undo)
+print (sql_update)

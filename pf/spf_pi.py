@@ -8,6 +8,7 @@ import postgresql
 import json
 
 undo = ""
+sql_update=""
 
 projectid = 1
 #sql="INSERT INTO spf.project(id, name) VALUES (31,'Темповый проект');"
@@ -65,12 +66,16 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=pi_catalog_id
     id += 1
     return id
 
+def update_pi_item(id, layeredattrs, sql_update):
+    sql_update = sql_update + "UPDATE spf.projectindicator SET layeredattrs='{1}' WHERE id={0};".format(id, layeredattrs)
+    return sql_update
+
 rb = xlrd.open_workbook('data/indicators.xlsx')
 sheet = rb.sheet_by_name("PI")
 
 # TODO: сделать обработку всего файла
-#for rownum in range(2, sheet.nrows):
-for rownum in range(2, 5):
+for rownum in range(2, sheet.nrows):
+#for rownum in range(2, 5):
     row = sheet.row_values(rownum)
 
     if (row[0] != ""):
@@ -91,18 +96,26 @@ for rownum in range(2, 5):
 
     if (row[0] == ""):
         fact = {}
+        update_fact = {}
         plan = {}
         for i in range(1, 20):
-            #key="{}".format(i)
             key = periods[i]
-            fact[key] = row[2 * (i - 1) + 4]
+            # До какого периода вносить фактические данные
+            if (i < 10):
+                fact[key] = row[2 * (i - 1) + 4]
+            # До какого периода вносить фактические данные (с помощью UPDATE)
+            if (i < 11):
+                update_fact[key] = row[2 * (i - 1) + 4]
             plan[key] = row[2 * (i - 1) + 3]
             i += 1
         layeredattrs = json.dumps({"FACT": fact})
+        layeredattrs_update_fact = json.dumps({"FACT": update_fact})
         layeredattrs_plan = json.dumps({"PLAN": plan})
         code = "pi_"+str(id_pi_item)
         id_pi_item = create_pi_item(id_pi_item, row[1], code, layeredattrs, projectid)
+        sql_update = update_pi_item(id_pi_item - 1, layeredattrs_update_fact, sql_update)
         id_pi_version = create_piversion(id_pi_version, id_pi_item-1, layeredattrs_plan)
         id_cat_item = create_cat_item(id_cat_item, last_tag, id_pi_version-1, "", "")
 
 print (undo)
+print (sql_update)
