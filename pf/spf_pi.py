@@ -4,7 +4,7 @@
 # -*- coding: utf-8 -*-
 
 import xlrd
-import postgresql
+#import postgresql
 import json
 import sys
 from datetime import datetime, date, time
@@ -25,44 +25,6 @@ pi_version_id = 1000
 # Перевод из периодов файла загрузки в периоды проекта в БД
 periods = {1:8,2:9,3:11,4:12,5:13,6:14,7:15,8:16,9:17,10:18,11:19,12:20,13:21,14:22,15:23,16:24,17:25,18:26,19:27,20:28}
 
-'''
-def run_sql(sql, sql_undo):
-    global undo, sql_insert
-    sql_insert += sql + "\n"
-    undo = sql_undo + undo
-
-# Создаем PI и фактические значение
-def create_pi_item(id_pi_item, name, code, layeredattrs, projectid):
-    sql = "INSERT INTO spf.projectindicator(id, name, code, layeredattrs, project_id) VALUES ({0}, '{1}', '{2}', '{3}', '{4}');".format(
-        id_pi_item, name, code, layeredattrs, projectid)
-    sql_undo = "DELETE FROM spf.projectindicator WHERE id={0};\n".format(id_pi_item)
-    run_sql(sql, sql_undo)
-    return id_pi_item+1
-
-# Создаем "версию" плана PI
-def create_piversion(id, master_id, layeredattrs, versionid=1):
-    sql = "INSERT INTO spf.projectindicatorversion(id, layeredattrs, versionid, master_id) VALUES ({0}, '{1}', {2}, {3});".format(
-        id, layeredattrs, versionid, master_id)
-    sql_undo = "DELETE FROM spf.projectindicatorversion WHERE id={0};\n".format(id)
-    return id+1
-
-# Создаем запись в каталоге PI
-def create_cat_item(id, parent_id, item_id, name, code, catalog_id=pi_catalog_id, versionid=1):
-    if (item_id):
-        sql = "INSERT INTO spf.projectindicatorcatalogitem(id, versionid, catalog_id, parent_id, item_id) VALUES ({0}, {1}, {2}, {3}, {4});".format(
-            id, versionid, catalog_id, parent_id, item_id)
-    else:
-        if (parent_id):
-            sql = "INSERT INTO spf.projectindicatorcatalogitem(id, code, name, versionid, catalog_id, parent_id) VALUES ({0}, '{1}', '{2}', {3}, {4}, {5});".format(
-                id, code, name, versionid, catalog_id, parent_id)
-        else:
-            sql = "INSERT INTO spf.projectindicatorcatalogitem(id, code, name, versionid, catalog_id) VALUES ({0}, '{1}', '{2}', {3}, {4});".format(
-                id, code, name, versionid, catalog_id)
-    sql_undo = "DELETE FROM spf.projectindicatorcatalogitem WHERE id={0};\n".format(id) + undo
-    run_sql(sql, sql_undo)
-    return id+1
-
-'''
 # Создаем PI и фактические значение
 def create_pi_item(id_pi_item, name, code, layeredattrs, projectid):
     global undo, sql_insert
@@ -111,7 +73,7 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=pi_catalog_id
     return id
 
 def update_pi_item(id, layeredattrs, sql_update):
-    sql_update = sql_update + "UPDATE spf.projectindicator SET layeredattrs='{1}' WHERE id={0};".format(id, layeredattrs)
+    sql_update = sql_update + "UPDATE spf.projectindicator SET layeredattrs='{1}' WHERE id={0};\n".format(id, layeredattrs)
     return sql_update
 
 rb = xlrd.open_workbook('data/indicators.xlsx')
@@ -159,9 +121,6 @@ for rownum in range(2, sheet.nrows):
         sql_update = update_pi_item(pi_item_id - 1, layeredattrs_update_fact, sql_update)
         pi_version_id = create_piversion(pi_version_id, pi_item_id - 1, layeredattrs_plan)
         cat_item_id = create_cat_item(cat_item_id, last_tag, pi_version_id - 1, "", "")
-
-#print (undo)
-#print (sql_update)
 
 undo_file = open('results/insert_pi_'+ datetime.now().strftime('%Y%m%d_%H%M') +'.txt', 'w')
 undo_file.write(sql_insert)
