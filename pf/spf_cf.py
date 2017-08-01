@@ -6,32 +6,37 @@
 import xlrd
 import postgresql
 import json
+import sys
+from datetime import datetime, date, time
 
 undo = ""
+sql_insert =""
 sql_update=""
 
 project_id = 1
 #sql="INSERT INTO spf.project(id, name) VALUES (31,'Темповый проект');"
 currency_id = 1
 
-# TODO: Запросить id_cf_item (max_id)
-id_cf_item = 5601
-id_cf_version = 5601
-id_cat_item = 5601
+# TODO: Запросить cf_item_id (max_id)
+cf_item_id = 5601
+cf_version_id = 5601
+cf_cat_item_id = 5601
 
 # TODO: Создать cashflowcatalog (max_id)
 cashflowcatalog_id = 1
 
 # TODO: Создать периоды проекта
-periods = {1:27,2:23,3:9,4:32,5:30,6:21,7:7,8:18,9:15,10:12,11:4,12:28,13:26,14:24,15:10,16:33,17:31,18:22,19:8,20:19}
+# Перевод из периодов файла загрузки в периоды проекта в БД
+periods = {1:8,2:9,3:11,4:12,5:13,6:14,7:15,8:16,9:17,10:18,11:19,12:20,13:21,14:22,15:23,16:24,17:25,18:26,19:27,20:28}
 
 # Создаем CF и фактические значение
 def create_cf_item(id_cf_item, name, code, layeredattrs, direction, type, currency_id):
+    global undo, sql_insert
     sql = "INSERT INTO spf.cashflow(id, name, code, layeredattrs, direction, type, projectid, currency_id) VALUES ({0}, '{1}', '{2}', '{3}', '{4}', '{5}', {6}, {7});".format(
         id_cf_item, name, code, layeredattrs, direction, type, project_id, currency_id)
-    print(sql)
+    sql_insert += sql + "\n"
+    #print(sql)
 
-    global undo
     undo = "DELETE FROM spf.cashflow WHERE id={0};\n".format(id_cf_item) + undo
 
     id_cf_item += 1
@@ -39,18 +44,19 @@ def create_cf_item(id_cf_item, name, code, layeredattrs, direction, type, curren
 
 # Создаем "версию" плана CF
 def create_cfversion(id, master_id, layeredattrs, versionid=1):
+    global undo, sql_insert
     sql = "INSERT INTO spf.cashflowversion(id, layeredattrs, versionid, master_id) VALUES ({0}, '{1}', {2}, {3});".format(
         id, layeredattrs, versionid, master_id)
-    print(sql)
+    sql_insert += sql + "\n"
+    # print(sql)
 
-    global undo
     undo = "DELETE FROM spf.cashflowversion WHERE id={0};\n".format(id) + undo
 
     id += 1
     return id
 
 def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatalog_id, versionid=1):
-
+    global undo, sql_insert
     if (item_id):
         sql = "INSERT INTO spf.cashflowcatalogitem(id, versionid, catalog_id, parent_id, item_id) VALUES ({0}, {1}, {2}, {3}, {4});".format(
             id, versionid, catalog_id, parent_id, item_id)
@@ -61,9 +67,9 @@ def create_cat_item(id, parent_id, item_id, name, code, catalog_id=cashflowcatal
         else:
             sql = "INSERT INTO spf.cashflowcatalogitem(id, code, name, versionid, catalog_id) VALUES ({0}, '{1}', '{2}', {3}, {4});".format(
                 id, code, name, versionid, catalog_id)
-    print(sql)
+    sql_insert += sql + "\n"
+    # print(sql)
 
-    global undo
     undo = "DELETE FROM spf.cashflowcatalogitem WHERE id={0};\n".format(id) + undo
 
     id += 1
@@ -84,17 +90,17 @@ for rownum in range(1, sheet.nrows):
         num = row[0].split(";")
 
         if (len(num) == 1):
-            id_cat_item = create_cat_item(id_cat_item, "", "", row[1], "cfci_"+ str(id_cat_item) )
-            parent_tag1 = id_cat_item-1
+            cf_cat_item_id = create_cat_item(cf_cat_item_id, "", "", row[1], "cfci_" + str(cf_cat_item_id))
+            parent_tag1 = cf_cat_item_id - 1
         if(len(num) == 2):
-            id_cat_item = create_cat_item(id_cat_item, parent_tag1, "", row[1], "cfci_"+ str(id_cat_item))
-            parent_tag2 = id_cat_item-1
+            cf_cat_item_id = create_cat_item(cf_cat_item_id, parent_tag1, "", row[1], "cfci_" + str(cf_cat_item_id))
+            parent_tag2 = cf_cat_item_id - 1
         if (len(num) == 3):
-            id_cat_item = create_cat_item(id_cat_item, parent_tag2, "", row[1], "cfci_"+ str(id_cat_item))
-            parent_tag3 = id_cat_item-1
+            cf_cat_item_id = create_cat_item(cf_cat_item_id, parent_tag2, "", row[1], "cfci_" + str(cf_cat_item_id))
+            parent_tag3 = cf_cat_item_id - 1
         if (len(num) == 4):
-            id_cat_item = create_cat_item(id_cat_item, parent_tag3, "", row[1], "cfci_"+ str(id_cat_item))
-        last_tag = id_cat_item-1
+            cf_cat_item_id = create_cat_item(cf_cat_item_id, parent_tag3, "", row[1], "cfci_" + str(cf_cat_item_id))
+        last_tag = cf_cat_item_id - 1
 
     if (row[0] == "cf"):
         fact = {}
@@ -114,11 +120,28 @@ for rownum in range(1, sheet.nrows):
         layeredattrs = json.dumps({"FACT": fact})
         layeredattrs_update_fact = json.dumps({"FACT": update_fact})
         layeredattrs_plan = json.dumps({"PLAN": plan})
-        code = "cf_"+str(id_cf_item)
-        id_cf_item = create_cf_item(id_cf_item, row[1], code, layeredattrs, row[2], row[3], currency_id)
-        sql_update = update_cf_item(id_cf_item-1, layeredattrs_update_fact, sql_update)
-        id_cf_version = create_cfversion(id_cf_version, id_cf_item-1, layeredattrs_plan)
-        id_cat_item = create_cat_item(id_cat_item, last_tag, id_cf_version-1, "", "")
+        code = "cf_"+str(cf_item_id)
+        cf_item_id = create_cf_item(cf_item_id, row[1], code, layeredattrs, row[2], row[3], currency_id)
+        sql_update = update_cf_item(cf_item_id - 1, layeredattrs_update_fact, sql_update)
+        cf_version_id = create_cfversion(cf_version_id, cf_item_id - 1, layeredattrs_plan)
+        cf_cat_item_id = create_cat_item(cf_cat_item_id, last_tag, cf_version_id - 1, "", "")
 
-print (undo)
-print (sql_update)
+#print (undo)
+#print (sql_update)
+
+undo_file = open('results/insert_cf_'+ datetime.now().strftime('%Y%m%d_%H%M') +'.txt', 'w')
+undo_file.write(sql_insert)
+undo_file.close()
+
+undo_file = open('results/undo_cf_'+ datetime.now().strftime('%Y%m%d_%H%M') +'.txt', 'w')
+undo_file.write(undo)
+undo_file.close()
+
+undo_file = open('results/update_cf_'+ datetime.now().strftime('%Y%m%d_%H%M') +'.txt', 'w')
+undo_file.write(sql_update)
+undo_file.close()
+
+# В цвете вывод информации о завершении работы
+OKGREEN = '\033[94m'
+ENDC = '\033[0m'
+print(OKGREEN  + "Скрипт {} закончил работу".format(sys.argv[0])+ ENDC)
