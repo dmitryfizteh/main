@@ -45,7 +45,6 @@ class Project(object):
         self.undo_script = ""
         self.update_script = ""
         self.insert_script = ""
-        self.project_import_file = 'data/indicators.xlsx'
         # TODO: считывать значения id из БД
         self.max_pi_item_id = 1000
         self.max_pi_cat_item_id = 5000
@@ -103,8 +102,8 @@ class Project(object):
         self.update_script = self.update_script + "UPDATE spf.projectindicator SET layeredattrs='{1}' WHERE id={0};\n". \
             format(self.max_pi_item_id - 1, pi.values['update_fact'])
 
-    def import_pi_from_file(self):
-        rb = xlrd.open_workbook(self.project_import_file)
+    def import_pi_from_file(self, project_import_file):
+        rb = xlrd.open_workbook(project_import_file)
         sheet = rb.sheet_by_name("PI")
 
         for rownum in range(2, sheet.nrows):
@@ -170,7 +169,7 @@ class Project(object):
 
 if __name__ == "__main__":
     P = Project()
-    P.import_pi_from_file()
+    P.import_pi_from_file('data/indicators.xlsx')
     del P
 
     # В цвете вывод информации о завершении работы
