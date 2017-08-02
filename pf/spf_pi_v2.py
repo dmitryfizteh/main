@@ -13,7 +13,7 @@ from datetime import datetime
 def save_script(filename, script):
     """Сохранение скрипта в файл"""
     # TODO: сделать сохранение в UTF-8
-    file = open(filename + datetime.now().strftime('%Y%m%d_%H%M') + '.txt', 'w', encoding='utf-8')
+    file = open(filename, 'w', encoding='utf-8')
     file.write(script)
     file.close()
 
@@ -45,6 +45,9 @@ class Project(object):
         self.undo_script = ""
         self.update_script = ""
         self.insert_script = ""
+        self.undo_result_file = ""
+        self.update_result_file = ""
+        self.insert_result_file = ""
         # TODO: считывать значения id из БД
         self.max_pi_item_id = 1000
         self.max_pi_cat_item_id = 5000
@@ -55,7 +58,7 @@ class Project(object):
         # Перевод из периодов файла загрузки в периоды проекта в БД
         self.periods = {1: 8, 2: 9, 3: 11, 4: 12, 5: 13, 6: 14, 7: 15, 8: 16, 9: 17, 10: 18, 11: 19, 12: 20, 13: 21,
                         14: 22, 15: 23, 16: 24, 17: 25, 18: 26, 19: 27, 20: 28}
-        self.fact_period = 10 # До какого периода вносить данные факта (и после какого в отдельный UPDATE)
+        self.fact_period = 9 # До какого периода вносить данные факта (и после какого в отдельный UPDATE)
 
     def run_sql(self, insert_str, undo_str):
         """Наполнение скриптов"""
@@ -162,9 +165,13 @@ class Project(object):
                 self.insert_pi_category_item(category)
                 self.update_pi_item(pi)
 
-        save_script('results/v2_insert_pi_', self.insert_script)
-        save_script('results/v2_undo_pi_', self.undo_script)
-        save_script('results/v2_update_pi_', self.update_script)
+        self.undo_result_file = 'results/v2_undo_pi_' + datetime.now().strftime('%Y%m%d_%H%M') + '.txt'
+        self.update_result_file = 'results/v2_update_pi_' + datetime.now().strftime('%Y%m%d_%H%M') + '.txt'
+        self.insert_result_file = 'results/v2_insert_pi_' + datetime.now().strftime('%Y%m%d_%H%M') + '.txt'
+
+        save_script(self.insert_result_file, self.insert_script)
+        save_script(self.undo_result_file, self.undo_script)
+        save_script(self.update_result_file, self.update_script)
 
 
 if __name__ == "__main__":
