@@ -7,8 +7,8 @@
 import xlrd
 import json
 import sys
+import postgresql
 from datetime import datetime
-
 
 def save_script(filename, script):
     """Сохранение скрипта в файл"""
@@ -16,14 +16,26 @@ def save_script(filename, script):
     file.write(script)
     file.close()
 
+def unittypeid(unittype, project):
+    """Из значения единицы измерения делаем id"""
+    id = project.db.query("SELECT id FROM spf.unitofmeasure WHERE code = '{}';".format(unittype))
+
+    if id:
+        id = int(id[0][0])
+    else:
+        id_max = project.db.query("SELECT max(id) FROM spf.unitofmeasure;")
+        id = int(id_max[0][0]) + 1
+        project.db.query("INSERT INTO spf.unitofmeasure(id, code, name) VALUES ({0}, '{1}', '{1}');".format(id, unittype))
+    return id
 
 class PI(object):
     """Класс проектных индикаторов"""
 
-    def __init__(self, name, code, values):
+    def __init__(self, name, code, values, unittype, project):
         self.name = name
         self.code = code
         self.values = values
+        self.unittype_id = unittypeid(unittype, project)
 
 
 class PI_Category(object):
@@ -65,9 +77,9 @@ class Project(object):
         self.undo_script = undo_str + self.undo_script
 
     def insert_pi_item(self, pi):
-        insert_scr = "INSERT INTO spf.projectindicator(id, name, code, layeredattrs, projectid) " \
-                     "VALUES ({0}, '{1}', '{2}', '{3}', '{4}');\n".format(
-            self.max_pi_item_id, pi.name, pi.code, pi.values['fact'], self.project_id)
+        insert_scr = "INSERT INTO spf.projectindicator(id, name, code, layeredattrs, projectid, unittype_id) " \
+                     "VALUES ({0}, '{1}', '{2}', '{3}', '{4}', {5});\n".format(
+            self.max_pi_item_id, pi.name, pi.code, pi.values['fact'], self.project_id, pi.unittype_id)
         undo_scr = "DELETE FROM spf.projectindicator WHERE id={0};\n".format(self.max_pi_item_id)
         self.run_sql(insert_scr, undo_scr)
         self.max_pi_item_id += 1
@@ -154,7 +166,7 @@ class Project(object):
 
                 values = {'plan': json.dumps({"PLAN": plan}), 'fact': json.dumps({"FACT": fact}),
                           'update_fact': json.dumps({"FACT": update_fact})}
-                pi = PI(row[1], "pi_" + str(self.max_pi_item_id), values)
+                pi = PI(row[1], "pi_" + str(self.max_pi_item_id), values, row[2],self)
                 if last_tag == "":
                     exit("ERROR: Неверная нумерация иерархии, CF item вне категорий")
                 category = PI_Category(row[1], "", self.max_pi_version_id, last_tag)
@@ -172,9 +184,15 @@ class Project(object):
         save_script(self.undo_result_file, self.undo_script)
         save_script(self.update_result_file, self.update_script)
 
+    def connect(self, connect_str):
+        f = open('data/passwd.txt')
+        for connect_str in f:
+            self.db = postgresql.open(connect_str)
+        f.close()
 
 if __name__ == "__main__":
     P = Project()
+    P.connect('data/passwd.txt')
     P.import_pi_from_file('data/indicators.xlsx')
     del P
 

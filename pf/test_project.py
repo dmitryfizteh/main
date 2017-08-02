@@ -1,5 +1,6 @@
 from unittest import TestCase
 import spf_pi_v2
+import os
 
 
 class TestProject(TestCase):
@@ -36,19 +37,22 @@ class TestProject(TestCase):
 
     def test_import_pi_from_insert_file(self):
         a = spf_pi_v2.Project()
+        a.connect('data/passwd.txt')
         a.fact_period = 9
         a.import_pi_from_file('tests/indicators_etalon.xlsx')
-        file = open('tests/insert_pi_etalon.txt', 'r')
+        file = open('tests/insert_pi_etalon.txt', 'r', encoding='utf-8')
         etalon = file.readlines()
         file.close()
 
         file = open(a.insert_result_file, 'r', encoding='utf-8')
         result = file.readlines()
         file.close()
+        os.remove(a.insert_result_file)
         self.assertEqual(etalon, result)
 
     def test_import_pi_from_undo_file(self):
         a = spf_pi_v2.Project()
+        a.connect('data/passwd.txt')
         a.fact_period = 9
         a.import_pi_from_file('tests/indicators_etalon.xlsx')
         file = open('tests/undo_pi_etalon.txt', 'r')
@@ -58,10 +62,12 @@ class TestProject(TestCase):
         file = open(a.undo_result_file, 'r', encoding='utf-8')
         result = file.readlines()
         file.close()
+        os.remove(a.undo_result_file)
         self.assertEqual(etalon, result)
 
     def test_import_pi_from_update_file(self):
         a = spf_pi_v2.Project()
+        a.connect('data/passwd.txt')
         a.fact_period = 9
         a.import_pi_from_file('tests/indicators_etalon.xlsx')
         file = open('tests/update_pi_etalon.txt', 'r')
@@ -71,4 +77,5 @@ class TestProject(TestCase):
         file = open(a.update_result_file, 'r', encoding='utf-8')
         result = file.readlines()
         file.close()
+        os.remove(a.update_result_file)
         self.assertEqual(etalon, result)

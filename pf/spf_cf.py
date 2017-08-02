@@ -18,9 +18,9 @@ project_id = 1
 currency_id = 1
 
 # TODO: Запросить cf_item_id (max_id)
-cf_item_id = 5601
-cf_version_id = 5601
-cf_cat_item_id = 5601
+cf_item_id = 10001
+cf_version_id = 10001
+cf_cat_item_id = 10001
 
 # TODO: Создать cashflowcatalog (max_id)
 cashflowcatalog_id = 1
