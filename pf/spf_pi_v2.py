@@ -56,6 +56,7 @@ class Project(object):
         # Перевод из периодов файла загрузки в периоды проекта в БД
         self.periods = {1: 8, 2: 9, 3: 11, 4: 12, 5: 13, 6: 14, 7: 15, 8: 16, 9: 17, 10: 18, 11: 19, 12: 20, 13: 21,
                         14: 22, 15: 23, 16: 24, 17: 25, 18: 26, 19: 27, 20: 28}
+        self.fact_period = 10 # До какого периода вносить данные факта (и после какого в отдельный UPDATE)
 
     def run_sql(self, insert_str, undo_str):
         """Наполнение скриптов"""
@@ -139,13 +140,13 @@ class Project(object):
                 fact = {}
                 update_fact = {}
                 plan = {}
-                for i in range(1, 20):
+                for i in range(1, len(self.periods)):
                     key = self.periods[i]
                     # До какого периода вносить фактические данные
-                    if i < 10:
+                    if i <= self.fact_period:
                         fact[key] = row[2 * (i - 1) + 4]
                     # До какого периода вносить фактические данные (с помощью UPDATE)
-                    if i < 11:
+                    if i <= self.fact_period + 1:
                         update_fact[key] = row[2 * (i - 1) + 4]
                     plan[key] = row[2 * (i - 1) + 3]
                     i += 1
