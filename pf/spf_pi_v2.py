@@ -12,7 +12,6 @@ from datetime import datetime
 
 def save_script(filename, script):
     """Сохранение скрипта в файл"""
-    # TODO: сделать сохранение в UTF-8
     file = open(filename, 'w', encoding='utf-8')
     file.write(script)
     file.close()
