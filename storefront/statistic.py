@@ -34,8 +34,8 @@ for xml in xml_files:
     months.append(int(prj.month_return))
 
 #print(sorted(summs))
-print("Количество проектов, предоставленных ФРП: {} шт.".format(len(summs)))
-print("Суммарный объем запрашиваемых средств в проектах ФРП: {} тыс. руб.".format(sum(summs)))
+print("Количество проектов: {} шт.".format(len(summs)))
+print("Суммарный объем запрашиваемых средств в проектах: {} тыс. руб.".format(sum(summs)))
 print("Средний запрашиваемый проектом объем финансирования: {} тыс. руб.".format(sum(summs)/len(summs)))
 print("Минимальный объем запрашиваемых средств проектом: {} тыс. руб.".format(min(summs)))
 print("Максимальный объем запрашиваемых средств проектом: {} тыс. руб.".format(max(summs)))

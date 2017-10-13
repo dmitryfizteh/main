@@ -3,19 +3,25 @@
 
 # --------------------------------------------------------------#
 # Скрипт расчета управленческого баланса за период по ЦФУ ОСА   #
+# Version: 0.5                                                  #
+# Author: Dmitry Morozov                                        #
 # --------------------------------------------------------------#
 
+# Выгрузить "трудозатраты по моим ЦФУ" за каждый месяц,
+# и положить в папку <номер года>/wt/wt-<##>.xls
+
 # Расчетный период в месяцах (с учетом декабря)
-PERIOD = 6
+PERIOD = int(input("За какое количество месяцев (включая декабрь) рассчитываем: "))
+year = "2017"
 
 import pandas as pd
 
 ## Функция обработки трудозатрат за месяц
 def calc_month(i, writer):
     if (i<10):
-        df = pd.read_excel("data/2017/wt/wt-0"+str(i)+".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
+        df = pd.read_excel("data/"+year+"/wt/wt-0"+str(i)+".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
     else:
-        df = pd.read_excel("data/2017/wt/wt-" + str(i) + ".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
+        df = pd.read_excel("data/"+year+"/wt/wt-" + str(i) + ".xls", sheetname=0, header=0, skiprows=7, skip_footer=1)
 
     pt = df.pivot_table(['Трудозатраты, ч'], ['Продукт'], aggfunc = 'sum', fill_value = 0)
 
